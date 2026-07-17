@@ -6,3 +6,4 @@ DerivedData/
 *.xcodeproj
 .agent-watch/
 /.agent-watch-cache/
+/dist/

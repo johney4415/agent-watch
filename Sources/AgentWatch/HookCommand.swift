@@ -30,6 +30,10 @@ enum HookCommand {
             try HookInstaller.install(executablePath: URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL.path)
             print("Installed Codex and Claude Code hooks. Backups use the .agent-watch-backup suffix.")
             return
+        case "uninstall-hooks":
+            try HookInstaller.uninstall(executablePath: URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL.path)
+            print("Removed Agent Watch hooks without changing unrelated configuration.")
+            return
         default:
             throw NSError(domain: "AgentWatch", code: 2, userInfo: [NSLocalizedDescriptionKey: "Unknown command: \(command)"])
         }

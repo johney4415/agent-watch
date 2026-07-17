@@ -22,6 +22,28 @@ A native macOS menu bar inbox for local coding-agent sessions. See which Codex a
 
 ## Quick start
 
+### Homebrew
+
+```sh
+brew install --cask johney4415/tap/agent-watch
+agent-watch install-hooks
+open -a "Agent Watch"
+```
+
+The current preview release is not notarized. On first launch, macOS may require you to approve Agent Watch under `System Settings → Privacy & Security → Open Anyway`. Release signing and notarization are planned; no signing credentials are stored in either public repository.
+
+Upgrade or uninstall:
+
+```sh
+brew upgrade --cask agent-watch
+agent-watch uninstall-hooks
+brew uninstall --cask agent-watch
+```
+
+Homebrew removes the app and CLI but intentionally leaves provider configuration untouched. Run `uninstall-hooks` first when you want those entries removed.
+
+### Build from source
+
 ```sh
 git clone https://github.com/johney4415/agent-watch.git
 cd agent-watch
@@ -69,6 +91,7 @@ The demo event is local test data. Remove it from `~/.agent-watch/events.ndjson`
 
 ```text
 agent-watch install-hooks       Back up and merge Codex and Claude Code hooks
+agent-watch uninstall-hooks     Remove only Agent Watch hook entries
 agent-watch emit-demo claude    Emit a local Claude test event
 agent-watch emit-demo codex     Emit a local Codex test event
 agent-watch claude-hook         Receive Claude hook JSON on standard input
@@ -155,7 +178,7 @@ The installer creates:
 ~/.claude/settings.json.agent-watch-backup
 ```
 
-Review and restore those files manually if needed. A dedicated `uninstall-hooks` command is planned.
+Use `agent-watch uninstall-hooks` to remove Agent Watch while retaining unrelated configuration. The backup files are also available for manual recovery.
 
 ## Development
 
@@ -166,6 +189,16 @@ swift run agent-watch
 ```
 
 The project intentionally has no third-party runtime dependencies.
+
+## Releases
+
+Version tags trigger `.github/workflows/release.yml`, which tests the package, builds the app, and publishes a versioned ZIP using the repository-scoped `GITHUB_TOKEN`. The workflow contains no private keys, access tokens, certificates, or notarization credentials.
+
+Create the same artifact locally with:
+
+```sh
+./scripts/package-release.sh 0.1.0
+```
 
 ## Roadmap
 

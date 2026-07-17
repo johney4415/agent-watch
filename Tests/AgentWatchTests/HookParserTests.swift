@@ -49,3 +49,22 @@ import Testing
     #expect((hooks["Stop"] as? [Any])?.count == 2)
     #expect(root["permissions"] != nil)
 }
+
+@Test func uninstallerRestoresForwardedCodexNotifier() throws {
+    let configured = #"""
+    notify = ["/bin/agent-watch","codex-hook","--forward","/existing/notifier","turn-ended"]
+    model = "codex"
+    """#
+    let result = try HookInstaller.codexConfigRemovingAgentWatch(configured)
+    #expect(result.contains(#"notify = ["/existing/notifier","turn-ended"]"#))
+    #expect(result.contains(#"model = "codex""#))
+}
+
+@Test func uninstallerRemovesOnlyAgentWatchClaudeHandlers() throws {
+    let installed = try HookInstaller.claudeConfig(Data(#"{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"existing"}]}]}}"#.utf8), executablePath: "/bin/agent-watch")
+    let output = try HookInstaller.claudeConfigRemovingAgentWatch(installed, executablePath: "/bin/agent-watch")
+    let root = try #require(try JSONSerialization.jsonObject(with: output) as? [String: Any])
+    let hooks = try #require(root["hooks"] as? [String: Any])
+    #expect(hooks["SessionStart"] == nil)
+    #expect((hooks["Stop"] as? [Any])?.count == 1)
+}
