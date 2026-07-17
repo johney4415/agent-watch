@@ -32,9 +32,14 @@ enum HookInstaller {
         if let match, let arrayRange = Range(match.range(at: 1), in: original) {
             let existingText = String(original[arrayRange])
             if let data = existingText.data(using: .utf8),
-               let existing = try JSONSerialization.jsonObject(with: data) as? [String],
-               !existing.contains(executablePath) {
-                command += ["--forward"] + existing
+               let existing = try JSONSerialization.jsonObject(with: data) as? [String] {
+                if existing.count >= 2, existing[1] == "codex-hook" {
+                    if let marker = existing.firstIndex(of: "--forward"), marker + 1 < existing.count {
+                        command += ["--forward"] + existing[(marker + 1)...]
+                    }
+                } else {
+                    command += ["--forward"] + existing
+                }
             }
         }
 
@@ -54,11 +59,18 @@ enum HookInstaller {
 
         for event in claudeEvents {
             var groups = hooks[event] as? [[String: Any]] ?? []
-            let exists = groups.contains { group in
-                guard let entries = group["hooks"] as? [[String: Any]] else { return false }
-                return entries.contains { $0["command"] as? String == command }
+            groups = groups.compactMap { group -> [String: Any]? in
+                var updated = group
+                guard let entries = group["hooks"] as? [[String: Any]] else { return group }
+                let retained = entries.filter { entry in
+                    guard let existingCommand = entry["command"] as? String else { return true }
+                    return !isAgentWatchClaudeCommand(existingCommand)
+                }
+                guard !retained.isEmpty else { return nil }
+                updated["hooks"] = retained
+                return updated
             }
-            if !exists { groups.append(handler) }
+            groups.append(handler)
             hooks[event] = groups
         }
         root["hooks"] = hooks
@@ -91,14 +103,16 @@ enum HookInstaller {
             throw HookParserError.invalidJSON
         }
         var hooks = root["hooks"] as? [String: Any] ?? [:]
-        let command = executablePath + " claude-hook"
 
         for event in claudeEvents {
             guard let groups = hooks[event] as? [[String: Any]] else { continue }
             let retained = groups.compactMap { group -> [String: Any]? in
                 var updated = group
                 guard let entries = group["hooks"] as? [[String: Any]] else { return group }
-                let keptEntries = entries.filter { $0["command"] as? String != command }
+                let keptEntries = entries.filter {
+                    guard let existingCommand = $0["command"] as? String else { return true }
+                    return !isAgentWatchClaudeCommand(existingCommand)
+                }
                 guard !keptEntries.isEmpty else { return nil }
                 updated["hooks"] = keptEntries
                 return updated
@@ -107,6 +121,12 @@ enum HookInstaller {
         }
         root["hooks"] = hooks
         return try JSONSerialization.data(withJSONObject: root, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]) + Data([0x0A])
+    }
+
+    private static func isAgentWatchClaudeCommand(_ command: String) -> Bool {
+        let executable = command.split(separator: " ", maxSplits: 1).first.map(String.init) ?? ""
+        return URL(fileURLWithPath: executable).lastPathComponent == "agent-watch"
+            && command.hasSuffix(" claude-hook")
     }
 
     private static func installCodex(executablePath: String, home: URL) throws {

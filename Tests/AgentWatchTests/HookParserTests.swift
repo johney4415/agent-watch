@@ -68,3 +68,18 @@ import Testing
     #expect(hooks["SessionStart"] == nil)
     #expect((hooks["Stop"] as? [Any])?.count == 1)
 }
+
+@Test func installerMigratesAgentWatchExecutableWithoutChainingItself() throws {
+    let original = #"notify = ["/Users/me/.local/bin/agent-watch","codex-hook","--forward","/existing/notifier","turn-ended"]"#
+    let result = try HookInstaller.codexConfig(original, executablePath: "/opt/homebrew/bin/agent-watch")
+    #expect(result.contains(#"["/opt/homebrew/bin/agent-watch","codex-hook","--forward","/existing/notifier","turn-ended"]"#))
+    #expect(!result.contains(".local/bin/agent-watch"))
+}
+
+@Test func installerReplacesOldClaudeExecutablePath() throws {
+    let installed = try HookInstaller.claudeConfig(nil, executablePath: "/Users/me/.local/bin/agent-watch")
+    let migrated = try HookInstaller.claudeConfig(installed, executablePath: "/opt/homebrew/bin/agent-watch")
+    let text = String(decoding: migrated, as: UTF8.self)
+    #expect(!text.contains(".local/bin/agent-watch"))
+    #expect(text.components(separatedBy: "/opt/homebrew/bin/agent-watch claude-hook").count - 1 == 6)
+}
