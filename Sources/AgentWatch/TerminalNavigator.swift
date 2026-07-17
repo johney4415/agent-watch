@@ -55,6 +55,10 @@ enum TerminalNavigator {
                 )
             }
         }
+
+        NSRunningApplication.runningApplications(withBundleIdentifier: "com.googlecode.iterm2")
+            .first?
+            .activate(options: [.activateAllWindows])
     }
 
     private static func run(_ executable: String, _ arguments: [String]) {

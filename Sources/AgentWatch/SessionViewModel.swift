@@ -1,4 +1,5 @@
 import Combine
+import AppKit
 import Foundation
 
 @MainActor
@@ -32,21 +33,29 @@ final class SessionViewModel: ObservableObject {
     }
 
     func select(_ session: AgentSession) {
-        TerminalNavigator.focus(session)
-        guard session.status == .completed else { return }
-        do {
-            try EventStore.shared.append(SessionEvent(
-                sessionID: session.id,
-                provider: session.provider,
-                status: .closed,
-                cwd: session.cwd,
-                summary: "Acknowledged",
-                terminal: session.terminal,
-                processID: session.processID
-            ))
-            refresh()
-        } catch {
-            errorMessage = error.localizedDescription
+        if session.status == .completed {
+            do {
+                try EventStore.shared.append(SessionEvent(
+                    sessionID: session.id,
+                    provider: session.provider,
+                    status: .closed,
+                    cwd: session.cwd,
+                    summary: "Acknowledged",
+                    terminal: session.terminal,
+                    processID: session.processID
+                ))
+                refresh()
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+
+        // MenuBarExtra's window otherwise remains key and continues receiving
+        // keyboard input after iTerm's session has been selected.
+        NSApplication.shared.keyWindow?.orderOut(nil)
+        NSApplication.shared.deactivate()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            TerminalNavigator.focus(session)
         }
     }
 }

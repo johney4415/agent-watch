@@ -122,7 +122,7 @@ Claude sends hook JSON over standard input. Agent Watch maps lifecycle events as
 
 The CLI helper appends hook payloads as normalized events to `~/.agent-watch/events.ndjson`. The menu bar process reads that append-only log and reduces it to the latest event for every session. Terminal identity comes from inherited iTerm2 and tmux environment variables, so no shell wrapper is required.
 
-Clicking a row uses iTerm2's AppleScript interface to select the matching session. Clicking a completed session also acknowledges it, removing it from the list and badge until that session emits a new event.
+Clicking a row closes the Agent Watch popover, focuses the matching iTerm2 session, and leaves keyboard focus in that terminal so you can type immediately. Clicking a completed session also acknowledges it, removing it from the list and badge until that session emits a new event.
 
 The menu bar badge counts sessions in `Needs input`, `Completed`, or `Failed`. It does not count `Running` or `Closed` sessions.
 
