@@ -50,7 +50,7 @@ private struct SessionMenu: View {
                 ScrollView {
                     LazyVStack(spacing: 6) {
                         ForEach(model.activeSessions) { session in
-                            SessionRow(session: session)
+                            SessionRow(session: session) { model.select(session) }
                         }
                     }
                 }
@@ -78,10 +78,11 @@ private struct SessionMenu: View {
 
 private struct SessionRow: View {
     let session: AgentSession
+    let onSelect: () -> Void
 
     var body: some View {
         Button {
-            TerminalNavigator.focus(session)
+            onSelect()
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: session.status.symbol)

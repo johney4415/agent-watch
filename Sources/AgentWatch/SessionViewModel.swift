@@ -30,4 +30,23 @@ final class SessionViewModel: ObservableObject {
             errorMessage = error.localizedDescription
         }
     }
+
+    func select(_ session: AgentSession) {
+        TerminalNavigator.focus(session)
+        guard session.status == .completed else { return }
+        do {
+            try EventStore.shared.append(SessionEvent(
+                sessionID: session.id,
+                provider: session.provider,
+                status: .closed,
+                cwd: session.cwd,
+                summary: "Acknowledged",
+                terminal: session.terminal,
+                processID: session.processID
+            ))
+            refresh()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
 }
