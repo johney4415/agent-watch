@@ -30,6 +30,14 @@ open "$HOME/Applications/Agent Watch.app"
 
 Ensure `~/.local/bin` is on your `PATH` before configuring hooks.
 
+Install both hooks automatically (existing configuration is backed up and merged):
+
+```sh
+agent-watch install-hooks
+```
+
+The installer preserves an existing Codex notifier by forwarding the original payload to it.
+
 ## Configure Codex
 
 Add this top-level setting to `~/.codex/config.toml`:

@@ -29,3 +29,23 @@ import Testing
     #expect(sessions.first?.status == .completed)
     #expect(sessions.first?.summary == "Done")
 }
+
+@Test func installerPreservesExistingCodexNotifier() throws {
+    let original = #"""
+    notify = ["/existing/notifier", "turn-ended"]
+    model = "codex"
+    """#
+    let result = try HookInstaller.codexConfig(original, executablePath: "/bin/agent-watch")
+    #expect(result.contains(#"notify = ["/bin/agent-watch","codex-hook","--forward","/existing/notifier","turn-ended"]"#))
+    #expect(result.contains(#"model = "codex""#))
+}
+
+@Test func installerMergesClaudeHooks() throws {
+    let original = Data(#"{"permissions":{"allow":["Read"]},"hooks":{"Stop":[{"hooks":[{"type":"command","command":"existing"}]}]}}"#.utf8)
+    let output = try HookInstaller.claudeConfig(original, executablePath: "/bin/agent-watch")
+    let root = try #require(try JSONSerialization.jsonObject(with: output) as? [String: Any])
+    let hooks = try #require(root["hooks"] as? [String: Any])
+    #expect((hooks["SessionStart"] as? [Any])?.count == 1)
+    #expect((hooks["Stop"] as? [Any])?.count == 2)
+    #expect(root["permissions"] != nil)
+}
