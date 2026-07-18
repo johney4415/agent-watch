@@ -83,3 +83,9 @@ import Testing
     #expect(!text.contains(".local/bin/agent-watch"))
     #expect(text.components(separatedBy: "/opt/homebrew/bin/agent-watch claude-hook").count - 1 == 6)
 }
+
+@Test func installerFlattensNestedAgentWatchNotifiers() throws {
+    let original = #"notify = ["/Users/me/agent-watch","codex-hook","--forward","/Users/me/.local/bin/agent-watch","codex-hook","--forward","/computer-use","turn-ended"]"#
+    let result = try HookInstaller.codexConfig(original, executablePath: "/opt/homebrew/bin/agent-watch")
+    #expect(result == #"notify = ["/opt/homebrew/bin/agent-watch","codex-hook","--forward","/computer-use","turn-ended"]"#)
+}

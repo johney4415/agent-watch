@@ -33,13 +33,8 @@ enum HookInstaller {
             let existingText = String(original[arrayRange])
             if let data = existingText.data(using: .utf8),
                let existing = try JSONSerialization.jsonObject(with: data) as? [String] {
-                if existing.count >= 2, existing[1] == "codex-hook" {
-                    if let marker = existing.firstIndex(of: "--forward"), marker + 1 < existing.count {
-                        command += ["--forward"] + existing[(marker + 1)...]
-                    }
-                } else {
-                    command += ["--forward"] + existing
-                }
+                let originalNotifier = unwrapAgentWatchNotifiers(existing)
+                if !originalNotifier.isEmpty { command += ["--forward"] + originalNotifier }
             }
         }
 
@@ -127,6 +122,15 @@ enum HookInstaller {
         let executable = command.split(separator: " ", maxSplits: 1).first.map(String.init) ?? ""
         return URL(fileURLWithPath: executable).lastPathComponent == "agent-watch"
             && command.hasSuffix(" claude-hook")
+    }
+
+    private static func unwrapAgentWatchNotifiers(_ input: [String]) -> [String] {
+        var command = input
+        while command.count >= 2, command[1] == "codex-hook" {
+            guard let marker = command.firstIndex(of: "--forward"), marker + 1 < command.count else { return [] }
+            command = Array(command[(marker + 1)...])
+        }
+        return command
     }
 
     private static func installCodex(executablePath: String, home: URL) throws {

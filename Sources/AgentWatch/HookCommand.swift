@@ -27,11 +27,11 @@ enum HookCommand {
                 summary: "Demo session needs your input"
             )
         case "install-hooks":
-            try HookInstaller.install(executablePath: URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL.path)
+            try HookInstaller.install(executablePath: ExecutableLocator.current())
             print("Installed Codex and Claude Code hooks. Backups use the .agent-watch-backup suffix.")
             return
         case "uninstall-hooks":
-            try HookInstaller.uninstall(executablePath: URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL.path)
+            try HookInstaller.uninstall(executablePath: ExecutableLocator.current())
             print("Removed Agent Watch hooks without changing unrelated configuration.")
             return
         default:
@@ -52,5 +52,19 @@ enum HookCommand {
         guard process.terminationStatus == 0 else {
             throw NSError(domain: "AgentWatch", code: Int(process.terminationStatus), userInfo: [NSLocalizedDescriptionKey: "Forwarded Codex notifier failed"])
         }
+    }
+}
+
+private enum ExecutableLocator {
+    static func current(environment: [String: String] = ProcessInfo.processInfo.environment) -> String {
+        let argument = CommandLine.arguments[0]
+        if argument.hasPrefix("/") {
+            return URL(fileURLWithPath: argument).standardizedFileURL.path
+        }
+        for directory in (environment["PATH"] ?? "").split(separator: ":") {
+            let candidate = URL(fileURLWithPath: String(directory)).appending(path: argument).path
+            if FileManager.default.isExecutableFile(atPath: candidate) { return candidate }
+        }
+        return URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appending(path: argument).standardizedFileURL.path
     }
 }
