@@ -7,6 +7,7 @@ final class SessionViewModel: ObservableObject {
     @Published private(set) var sessions: [AgentSession] = []
     @Published private(set) var errorMessage: String?
     private var timer: Timer?
+    private let codexMonitor = CodexSessionMonitor()
 
     var attentionCount: Int {
         sessions.filter { $0.status == .needsInput || $0.status == .completed || $0.status == .failed }.count
@@ -25,7 +26,15 @@ final class SessionViewModel: ObservableObject {
 
     func refresh() {
         do {
-            sessions = try EventStore.shared.sessions()
+            let persisted = try EventStore.shared.sessions()
+            let inferred = codexMonitor.sessions()
+            var latest = Dictionary(uniqueKeysWithValues: persisted.map { ($0.id, $0) })
+            for session in inferred {
+                if latest[session.id]?.updatedAt ?? .distantPast < session.updatedAt {
+                    latest[session.id] = session
+                }
+            }
+            sessions = latest.values.sorted { $0.updatedAt > $1.updatedAt }
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription

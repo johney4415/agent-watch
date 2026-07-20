@@ -2,7 +2,7 @@
 
 A native macOS menu bar inbox for local coding-agent sessions. See which Codex and Claude Code sessions are running, waiting for you, completed, failed, or closed—and jump back to the matching iTerm2 session with one click.
 
-> Early preview: Claude Code lifecycle tracking is complete. Codex currently exposes reliable turn-complete events; richer Codex running and approval tracking is planned.
+> Early preview: Claude Code uses official lifecycle hooks. Codex completion uses its official notifier, while running and approval states are inferred locally from recent Codex session logs with a version-tolerant adapter.
 
 ## What it does
 
@@ -25,12 +25,12 @@ A native macOS menu bar inbox for local coding-agent sessions. See which Codex a
 ### Homebrew
 
 ```sh
-brew install --cask johney4415/tap/agent-watch
+brew install --cask --no-quarantine johney4415/tap/agent-watch
 agent-watch install-hooks
 open -a "Agent Watch"
 ```
 
-The current preview release is not notarized. On first launch, macOS may require you to approve Agent Watch under `System Settings → Privacy & Security → Open Anyway`. Release signing and notarization are planned; no signing credentials are stored in either public repository.
+The current preview release is not signed or notarized, so `--no-quarantine` is explicitly required. Review the source and release workflow before installing. Release signing and notarization are planned; no signing credentials are stored in either public repository. Once notarized releases are available, the flag will be removed.
 
 Upgrade or uninstall:
 
@@ -124,6 +124,8 @@ Merge the following into `~/.claude/settings.json`. If you already have hooks fo
     "SessionStart": [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/agent-watch claude-hook" }] }],
     "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/agent-watch claude-hook" }] }],
     "Notification": [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/agent-watch claude-hook" }] }],
+    "PostToolUse": [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/agent-watch claude-hook" }] }],
+    "PostToolUseFailure": [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/agent-watch claude-hook" }] }],
     "Stop": [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/agent-watch claude-hook" }] }],
     "StopFailure": [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/agent-watch claude-hook" }] }],
     "SessionEnd": [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/agent-watch claude-hook" }] }]
@@ -137,6 +139,7 @@ Claude sends hook JSON over standard input. Agent Watch maps lifecycle events as
 | --- | --- |
 | `SessionStart`, `UserPromptSubmit` | Running |
 | `Notification` (`permission_prompt`, `idle_prompt`) | Needs input |
+| `PostToolUse`, `PostToolUseFailure` | Running |
 | `Stop` | Completed |
 | `StopFailure` | Failed |
 | `SessionEnd` | Closed |
@@ -144,6 +147,8 @@ Claude sends hook JSON over standard input. Agent Watch maps lifecycle events as
 ## How it works
 
 The CLI helper appends hook payloads as normalized events to `~/.agent-watch/events.ndjson`. The menu bar process reads that append-only log and reduces it to the latest event for every session. Terminal identity comes from inherited iTerm2 and tmux environment variables, so no shell wrapper is required.
+
+For Codex, the app also reads recently modified JSONL files under `~/.codex/sessions`. It maps `task_started`, `task_complete`, and `turn_aborted` into lifecycle states and treats an unresolved escalated tool call as `Needs input`. Unknown records are ignored so additive Codex schema changes do not break the monitor.
 
 Clicking a row closes the Agent Watch popover, focuses the matching iTerm2 session, and leaves keyboard focus in that terminal so you can type immediately. Clicking a completed session also acknowledges it, removing it from the list and badge until that session emits a new event.
 
@@ -204,7 +209,6 @@ Create the same artifact locally with:
 
 - `setup`, `doctor`, `status`, and `uninstall-hooks` CLI workflows
 - Native Settings and diagnostics UI backed by the same configuration engine
-- Codex approval and turn-start detection
 - Apple Terminal, Warp, and WezTerm navigation adapters
 - Native notifications and unread acknowledgement
 - Launch at login

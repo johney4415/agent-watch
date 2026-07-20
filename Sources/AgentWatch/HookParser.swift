@@ -38,7 +38,7 @@ enum HookParser {
         let eventName = object["hook_event_name"] as? String ?? ""
         let notificationType = object["notification_type"] as? String
         let status: SessionStatus = switch eventName {
-        case "UserPromptSubmit", "SessionStart": .running
+        case "UserPromptSubmit", "SessionStart", "PostToolUse", "PostToolUseFailure": .running
         case "Notification" where notificationType == "permission_prompt" || notificationType == "idle_prompt": .needsInput
         case "Stop": .completed
         case "StopFailure": .failed

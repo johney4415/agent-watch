@@ -2,7 +2,8 @@ import Foundation
 
 enum HookInstaller {
     private static let claudeEvents = [
-        "SessionStart", "UserPromptSubmit", "Notification", "Stop", "StopFailure", "SessionEnd",
+        "SessionStart", "UserPromptSubmit", "Notification", "PostToolUse", "PostToolUseFailure",
+        "Stop", "StopFailure", "SessionEnd",
     ]
 
     static func install(executablePath: String, home: URL = FileManager.default.homeDirectoryForCurrentUser) throws {

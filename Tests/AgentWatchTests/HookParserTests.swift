@@ -19,6 +19,11 @@ import Testing
     #expect(event.status == .needsInput)
 }
 
+@Test func claudePostToolUseClearsPermissionState() throws {
+    let input = Data(#"{"session_id":"session-1","cwd":"/tmp/project","hook_event_name":"PostToolUse","tool_name":"Bash"}"#.utf8)
+    #expect(try HookParser.claude(input, environment: [:]).status == .running)
+}
+
 @Test func storeKeepsLatestSessionEvent() throws {
     let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
     let store = EventStore(baseDirectory: directory)
@@ -81,7 +86,7 @@ import Testing
     let migrated = try HookInstaller.claudeConfig(installed, executablePath: "/opt/homebrew/bin/agent-watch")
     let text = String(decoding: migrated, as: UTF8.self)
     #expect(!text.contains(".local/bin/agent-watch"))
-    #expect(text.components(separatedBy: "/opt/homebrew/bin/agent-watch claude-hook").count - 1 == 6)
+    #expect(text.components(separatedBy: "/opt/homebrew/bin/agent-watch claude-hook").count - 1 == 8)
 }
 
 @Test func installerFlattensNestedAgentWatchNotifiers() throws {
