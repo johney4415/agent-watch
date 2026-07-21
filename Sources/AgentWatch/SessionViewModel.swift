@@ -8,6 +8,7 @@ final class SessionViewModel: ObservableObject {
     @Published private(set) var errorMessage: String?
     private var timer: Timer?
     private let codexMonitor = CodexSessionMonitor()
+    private let terminalRegistry = TerminalSessionRegistry()
 
     var attentionCount: Int {
         sessions.filter { $0.status == .needsInput || $0.status == .completed || $0.status == .failed }.count
@@ -32,6 +33,14 @@ final class SessionViewModel: ObservableObject {
             for session in inferred {
                 if latest[session.id]?.updatedAt ?? .distantPast < session.updatedAt {
                     latest[session.id] = session
+                }
+            }
+            if let liveIDs = terminalRegistry.liveITermSessionIDs() {
+                let closedIDs = latest.values
+                    .filter { !TerminalSessionRegistry.isLive($0.terminal, in: liveIDs) }
+                    .map(\.id)
+                for id in closedIDs {
+                    latest[id]?.status = .closed
                 }
             }
             sessions = latest.values.sorted { $0.updatedAt > $1.updatedAt }

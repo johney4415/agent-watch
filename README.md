@@ -11,6 +11,7 @@ A native macOS menu bar inbox for local coding-agent sessions. See which Codex a
 - Stores events even while the menu bar app is not running.
 - Focuses the matching iTerm2 tab or pane when you click a session.
 - Acknowledges a completed session when clicked, removing it from the list until a new event arrives.
+- Removes a session automatically when its corresponding iTerm2 pane or tab is closed, even if the agent cannot emit a clean session-end event.
 - Uses only local files. No telemetry and no network service.
 
 ## Requirements
