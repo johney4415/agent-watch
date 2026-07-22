@@ -85,11 +85,11 @@ final class SessionViewModel: ObservableObject {
     }
 
     private func dismissMenuBarPanel() {
-        // A MenuBarExtra with window style is backed by an NSPanel, but that
-        // panel is not guaranteed to be `keyWindow` while its button action is
-        // running. Closing every visible app-owned panel reliably clears the
-        // selected/highlighted state of the status item.
-        for window in NSApplication.shared.windows where window.isVisible {
+        // A MenuBarExtra owns both its interactive panel and a non-key status
+        // bar window. The action's panel is not guaranteed to be `keyWindow`,
+        // so close all visible windows that can become key while preserving the
+        // status bar window (otherwise the menu bar icon itself disappears).
+        for window in NSApplication.shared.windows where window.isVisible && window.canBecomeKey {
             window.orderOut(nil)
         }
         NSApplication.shared.deactivate()
