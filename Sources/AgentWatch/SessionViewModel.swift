@@ -75,12 +75,23 @@ final class SessionViewModel: ObservableObject {
             }
         }
 
-        // MenuBarExtra's window otherwise remains key and continues receiving
-        // keyboard input after iTerm's session has been selected.
-        NSApplication.shared.keyWindow?.orderOut(nil)
-        NSApplication.shared.deactivate()
+        dismissMenuBarPanel()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             TerminalNavigator.focus(session)
+            // SwiftUI can restore the MenuBarExtra panel's active state at the
+            // end of the button action, so dismiss once more after navigation.
+            self.dismissMenuBarPanel()
         }
+    }
+
+    private func dismissMenuBarPanel() {
+        // A MenuBarExtra with window style is backed by an NSPanel, but that
+        // panel is not guaranteed to be `keyWindow` while its button action is
+        // running. Closing every visible app-owned panel reliably clears the
+        // selected/highlighted state of the status item.
+        for window in NSApplication.shared.windows where window.isVisible {
+            window.orderOut(nil)
+        }
+        NSApplication.shared.deactivate()
     }
 }
