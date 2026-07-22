@@ -29,7 +29,11 @@ final class SessionViewModel: ObservableObject {
         do {
             let persisted = try EventStore.shared.sessions()
             let inferred = codexMonitor.sessions()
-            var latest = Dictionary(uniqueKeysWithValues: persisted.map { ($0.id, $0) })
+            let interactiveCodexIDs = Set(inferred.map(\.id))
+            let visiblePersisted = persisted.filter {
+                $0.provider != .codex || interactiveCodexIDs.contains($0.id) || $0.id.hasPrefix("demo-")
+            }
+            var latest = Dictionary(uniqueKeysWithValues: visiblePersisted.map { ($0.id, $0) })
             for session in inferred {
                 if latest[session.id]?.updatedAt ?? .distantPast < session.updatedAt {
                     latest[session.id] = session

@@ -45,6 +45,7 @@ final class CodexSessionMonitor: @unchecked Sendable {
         var summary = ""
         var updatedAt: Date?
         var pendingApprovals = Set<String>()
+        var isInteractiveCLI = true
 
         for line in data.split(separator: 0x0A) {
             guard let object = try? JSONSerialization.jsonObject(with: Data(line)) as? [String: Any],
@@ -55,6 +56,14 @@ final class CodexSessionMonitor: @unchecked Sendable {
             if type == "session_meta" {
                 sessionID = payload["session_id"] as? String ?? payload["id"] as? String
                 cwd = payload["cwd"] as? String ?? cwd
+                // ~/.codex/sessions also contains one-shot `codex exec` and
+                // app-server work. They are not terminal sessions and cannot
+                // be focused from the menu bar.
+                if let originator = payload["originator"] as? String {
+                    isInteractiveCLI = originator == "codex-tui"
+                } else if let source = payload["source"] as? String {
+                    isInteractiveCLI = source == "cli"
+                }
                 continue
             }
 
@@ -102,7 +111,7 @@ final class CodexSessionMonitor: @unchecked Sendable {
             }
         }
 
-        guard let sessionID, let status, let updatedAt else { return nil }
+        guard isInteractiveCLI, let sessionID, let status, let updatedAt else { return nil }
         return AgentSession(
             id: sessionID,
             provider: .codex,

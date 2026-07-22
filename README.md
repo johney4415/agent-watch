@@ -151,7 +151,7 @@ Claude sends hook JSON over standard input. Agent Watch maps lifecycle events as
 
 The CLI helper appends hook payloads as normalized events to `~/.agent-watch/events.ndjson`. The menu bar process reads that append-only log and reduces it to the latest event for every session. Terminal identity comes from inherited iTerm2 and tmux environment variables, so no shell wrapper is required.
 
-For Codex, the app also reads recently modified JSONL files under `~/.codex/sessions`. It maps `task_started`, `task_complete`, and `turn_aborted` into lifecycle states and treats an unresolved escalated tool call as `Needs input`. Unknown records are ignored so additive Codex schema changes do not break the monitor.
+For Codex, the app also reads recently modified JSONL files under `~/.codex/sessions`. Only interactive `codex-tui` / CLI sessions are shown; one-shot `codex exec` and app-server sessions are excluded because they do not correspond to a terminal pane. The app maps `task_started`, `task_complete`, and `turn_aborted` into lifecycle states and treats an unresolved escalated tool call as `Needs input`. Unknown records are ignored so additive Codex schema changes do not break the monitor.
 
 Clicking a row closes the Agent Watch popover, focuses the matching iTerm2 session, and leaves keyboard focus in that terminal so you can type immediately. Clicking a completed session also acknowledges it, removing it from the list and badge until that session emits a new event.
 

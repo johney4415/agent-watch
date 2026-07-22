@@ -38,3 +38,21 @@ import Testing
     """.utf8)
     #expect(try #require(monitor.parse(data: resumed)).status == .running)
 }
+
+@Test func codexMonitorIgnoresNonInteractiveExecSessions() {
+    let monitor = CodexSessionMonitor(sessionsDirectory: URL(fileURLWithPath: "/nonexistent"))
+    let execSession = Data("""
+    {"timestamp":"2026-07-22T01:00:00.000Z","type":"session_meta","payload":{"id":"exec-1","cwd":"/tmp","originator":"codex_exec","source":"exec"}}
+    {"timestamp":"2026-07-22T01:01:00.000Z","type":"event_msg","payload":{"type":"task_started"}}
+    """.utf8)
+    #expect(monitor.parse(data: execSession) == nil)
+}
+
+@Test func codexMonitorKeepsInteractiveTUISessions() throws {
+    let monitor = CodexSessionMonitor(sessionsDirectory: URL(fileURLWithPath: "/nonexistent"))
+    let tuiSession = Data("""
+    {"timestamp":"2026-07-22T01:00:00.000Z","type":"session_meta","payload":{"id":"tui-1","cwd":"/tmp","originator":"codex-tui","source":"cli"}}
+    {"timestamp":"2026-07-22T01:01:00.000Z","type":"event_msg","payload":{"type":"task_started"}}
+    """.utf8)
+    #expect(try #require(monitor.parse(data: tuiSession)).id == "tui-1")
+}
