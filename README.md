@@ -13,6 +13,7 @@ A native macOS menu bar inbox for local coding-agent sessions. See which Codex a
 - Acknowledges a completed session when clicked, removing it from the list until a new event arrives.
 - Removes a session automatically when its corresponding iTerm2 pane or tab is closed, even if the agent cannot emit a clean session-end event.
 - Records the agent process for new hook events, removing stale state when the agent exits even if its terminal remains open. Running sessions that have neither a process nor terminal identity expire after 10 minutes without an update.
+- The Refresh button bypasses the terminal-session cache and immediately reconciles the list with iTerm2.
 - Uses only local files. No telemetry and no network service.
 
 ## Requirements

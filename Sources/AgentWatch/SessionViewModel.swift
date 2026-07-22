@@ -25,7 +25,7 @@ final class SessionViewModel: ObservableObject {
         }
     }
 
-    func refresh() {
+    func refresh(forceTerminalRefresh: Bool = false) {
         do {
             let persisted = try EventStore.shared.sessions()
             let inferred = codexMonitor.sessions()
@@ -35,7 +35,7 @@ final class SessionViewModel: ObservableObject {
                     latest[session.id] = session
                 }
             }
-            if let liveIDs = terminalRegistry.liveITermSessionIDs() {
+            if let liveIDs = terminalRegistry.liveITermSessionIDs(force: forceTerminalRefresh) {
                 let closedIDs = latest.values
                     .filter { !TerminalSessionRegistry.isLive($0.terminal, in: liveIDs) }
                     .map(\.id)

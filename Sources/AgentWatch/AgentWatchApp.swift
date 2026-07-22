@@ -38,7 +38,9 @@ private struct SessionMenu: View {
             HStack {
                 Text("Agent Watch").font(.headline)
                 Spacer()
-                Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
+                Button("Refresh", systemImage: "arrow.clockwise") {
+                    model.refresh(forceTerminalRefresh: true)
+                }
                     .labelStyle(.iconOnly)
                     .buttonStyle(.plain)
             }

@@ -11,8 +11,8 @@ final class TerminalSessionRegistry {
         self.refreshInterval = refreshInterval
     }
 
-    func liveITermSessionIDs(now: Date = .now) -> Set<String>? {
-        guard now.timeIntervalSince(lastRefresh) >= refreshInterval else { return cachedIDs }
+    func liveITermSessionIDs(now: Date = .now, force: Bool = false) -> Set<String>? {
+        guard force || now.timeIntervalSince(lastRefresh) >= refreshInterval else { return cachedIDs }
         lastRefresh = now
 
         let running = !NSRunningApplication.runningApplications(withBundleIdentifier: "com.googlecode.iterm2").isEmpty
