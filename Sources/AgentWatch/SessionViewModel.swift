@@ -43,6 +43,9 @@ final class SessionViewModel: ObservableObject {
                     latest[id]?.status = .closed
                 }
             }
+            for session in latest.values where SessionReconciler.shouldClose(session) {
+                latest[session.id]?.status = .closed
+            }
             sessions = latest.values.sorted { $0.updatedAt > $1.updatedAt }
             errorMessage = nil
         } catch {

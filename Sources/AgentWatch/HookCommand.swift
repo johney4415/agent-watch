@@ -1,16 +1,20 @@
 import Foundation
+#if canImport(Darwin)
+import Darwin
+#endif
 
 enum HookCommand {
     static func run(arguments: [String]) throws {
         guard let command = arguments.first else { return }
         let data: Data
-        let event: SessionEvent
+        var event: SessionEvent
 
         switch command {
         case "codex-hook":
             guard let payload = arguments.last, arguments.count > 1 else { throw HookParserError.invalidJSON }
             data = Data(payload.utf8)
             event = try HookParser.codex(data)
+            event.processID = getppid()
             try EventStore.shared.append(event)
             try forwardCodexNotification(arguments: arguments, payload: payload)
             return
@@ -37,6 +41,9 @@ enum HookCommand {
         default:
             throw NSError(domain: "AgentWatch", code: 2, userInfo: [NSLocalizedDescriptionKey: "Unknown command: \(command)"])
         }
+        // The hook is launched by the agent process. Keeping its PID lets the
+        // menu remove stale state when the agent exits but its terminal remains.
+        event.processID = getppid()
         try EventStore.shared.append(event)
     }
 
