@@ -39,6 +39,18 @@ import Testing
     #expect(try #require(monitor.parse(data: resumed)).status == .running)
 }
 
+@Test func codexMonitorTracksRequestedUserAnswer() throws {
+    let monitor = CodexSessionMonitor(sessionsDirectory: URL(fileURLWithPath: "/nonexistent"))
+    let pending = Data(#"""
+    {"timestamp":"2026-07-23T01:00:00.000Z","type":"session_meta","payload":{"id":"thread-question","cwd":"/tmp","originator":"codex-tui","source":"cli"}}
+    {"timestamp":"2026-07-23T01:01:00.000Z","type":"event_msg","payload":{"type":"task_started"}}
+    {"timestamp":"2026-07-23T01:01:30.000Z","type":"response_item","payload":{"type":"function_call","name":"request_user_input","call_id":"question-1","input":"{}"}}
+    """#.utf8)
+    let session = try #require(monitor.parse(data: pending))
+    #expect(session.status == .needsInput)
+    #expect(session.summary == "Codex is waiting for your answer")
+}
+
 @Test func codexMonitorIgnoresNonInteractiveExecSessions() {
     let monitor = CodexSessionMonitor(sessionsDirectory: URL(fileURLWithPath: "/nonexistent"))
     let execSession = Data("""

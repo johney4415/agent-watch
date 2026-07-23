@@ -37,9 +37,13 @@ enum HookParser {
         guard let sessionID = object["session_id"] as? String else { throw HookParserError.missingSessionID }
         let eventName = object["hook_event_name"] as? String ?? ""
         let notificationType = object["notification_type"] as? String
+        let toolName = object["tool_name"] as? String
         let status: SessionStatus = switch eventName {
         case "UserPromptSubmit", "SessionStart", "PostToolUse", "PostToolUseFailure": .running
-        case "Notification" where notificationType == "permission_prompt" || notificationType == "idle_prompt": .needsInput
+        case "PreToolUse" where toolName == "AskUserQuestion": .needsInput
+        case "PreToolUse": .running
+        case "Notification" where notificationType == "permission_prompt": .needsInput
+        case "Notification" where notificationType == "idle_prompt": .idle
         case "Stop": .completed
         case "StopFailure": .failed
         case "SessionEnd": .closed

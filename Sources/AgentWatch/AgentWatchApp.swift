@@ -117,6 +117,7 @@ private struct SessionRow: View {
         switch session.status {
         case .running: .blue
         case .needsInput: .orange
+        case .idle: .secondary
         case .completed: .green
         case .failed: .red
         case .closed: .gray

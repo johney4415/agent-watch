@@ -142,7 +142,9 @@ Claude sends hook JSON over standard input. Agent Watch maps lifecycle events as
 | Claude event | Agent Watch status |
 | --- | --- |
 | `SessionStart`, `UserPromptSubmit` | Running |
-| `Notification` (`permission_prompt`, `idle_prompt`) | Needs input |
+| `Notification` (`permission_prompt`) | Needs input |
+| `Notification` (`idle_prompt`) | Idle |
+| `PreToolUse` (`AskUserQuestion`) | Needs input |
 | `PostToolUse`, `PostToolUseFailure` | Running |
 | `Stop` | Completed |
 | `StopFailure` | Failed |

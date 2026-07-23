@@ -19,6 +19,14 @@ import Testing
     #expect(event.status == .needsInput)
 }
 
+@Test func separatesClaudeIdleFromQuestion() throws {
+    let idle = Data(#"{"session_id":"idle","cwd":"/tmp","hook_event_name":"Notification","notification_type":"idle_prompt","message":"Waiting"}"#.utf8)
+    #expect(try HookParser.claude(idle).status == .idle)
+
+    let question = Data(#"{"session_id":"question","cwd":"/tmp","hook_event_name":"PreToolUse","tool_name":"AskUserQuestion"}"#.utf8)
+    #expect(try HookParser.claude(question).status == .needsInput)
+}
+
 @Test func claudePostToolUseClearsPermissionState() throws {
     let input = Data(#"{"session_id":"session-1","cwd":"/tmp/project","hook_event_name":"PostToolUse","tool_name":"Bash"}"#.utf8)
     #expect(try HookParser.claude(input, environment: [:]).status == .running)
@@ -86,7 +94,7 @@ import Testing
     let migrated = try HookInstaller.claudeConfig(installed, executablePath: "/opt/homebrew/bin/agent-watch")
     let text = String(decoding: migrated, as: UTF8.self)
     #expect(!text.contains(".local/bin/agent-watch"))
-    #expect(text.components(separatedBy: "/opt/homebrew/bin/agent-watch claude-hook").count - 1 == 8)
+    #expect(text.components(separatedBy: "/opt/homebrew/bin/agent-watch claude-hook").count - 1 == 9)
 }
 
 @Test func installerFlattensNestedAgentWatchNotifiers() throws {

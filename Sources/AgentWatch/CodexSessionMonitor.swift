@@ -91,11 +91,13 @@ final class CodexSessionMonitor: @unchecked Sendable {
                 pendingApprovals.removeAll()
             case "custom_tool_call", "function_call":
                 let input = payload["input"] as? String ?? ""
-                if input.contains(#""sandbox_permissions":"require_escalated""#),
+                let toolName = payload["name"] as? String ?? payload["tool_name"] as? String ?? ""
+                if (input.contains(#""sandbox_permissions":"require_escalated""#)
+                    || toolName == "request_user_input"),
                    let callID = payload["call_id"] as? String {
                     pendingApprovals.insert(callID)
                     status = .needsInput
-                    summary = "Codex needs approval"
+                    summary = toolName == "request_user_input" ? "Codex is waiting for your answer" : "Codex needs approval"
                     updatedAt = timestamp ?? updatedAt
                 }
             case "custom_tool_call_output", "function_call_output":

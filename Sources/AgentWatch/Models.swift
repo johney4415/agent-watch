@@ -10,6 +10,7 @@ enum AgentProvider: String, Codable, CaseIterable, Sendable {
 enum SessionStatus: String, Codable, Sendable {
     case running
     case needsInput
+    case idle
     case completed
     case failed
     case closed
@@ -18,6 +19,7 @@ enum SessionStatus: String, Codable, Sendable {
         switch self {
         case .running: "Running"
         case .needsInput: "Needs input"
+        case .idle: "Idle"
         case .completed: "Completed"
         case .failed: "Failed"
         case .closed: "Closed"
@@ -28,6 +30,7 @@ enum SessionStatus: String, Codable, Sendable {
         switch self {
         case .running: "circle.fill"
         case .needsInput: "exclamationmark.circle.fill"
+        case .idle: "pause.circle.fill"
         case .completed: "checkmark.circle.fill"
         case .failed: "xmark.circle.fill"
         case .closed: "circle"
