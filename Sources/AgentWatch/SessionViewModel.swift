@@ -30,8 +30,17 @@ final class SessionViewModel: ObservableObject {
             let persisted = try EventStore.shared.sessions()
             let inferred = codexMonitor.sessions()
             let interactiveCodexIDs = Set(inferred.map(\.id))
-            let visiblePersisted = persisted.filter {
+            var visiblePersisted = persisted.filter {
                 $0.provider != .codex || interactiveCodexIDs.contains($0.id) || $0.id.hasPrefix("demo-")
+            }
+            // Before Idle was a separate state, Claude's idle_prompt was stored
+            // as Needs input with this summary. Reclassify historical records
+            // without rewriting the user's event log.
+            for index in visiblePersisted.indices
+                where visiblePersisted[index].provider == .claude
+                    && visiblePersisted[index].status == .needsInput
+                    && visiblePersisted[index].summary == "Claude is waiting for your input" {
+                visiblePersisted[index].status = .idle
             }
             var latest = Dictionary(uniqueKeysWithValues: visiblePersisted.map { ($0.id, $0) })
             for session in inferred {
