@@ -32,14 +32,20 @@ struct AgentWatchApp: App {
 
 private struct SessionMenu: View {
     @ObservedObject var model: SessionViewModel
+    @State private var didRefresh = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("Agent Watch").font(.headline)
                 Spacer()
-                Button("Refresh", systemImage: "arrow.clockwise") {
+                Button(didRefresh ? "Refreshed" : "Refresh", systemImage: didRefresh ? "checkmark" : "arrow.clockwise") {
                     model.refresh(forceTerminalRefresh: true)
+                    didRefresh = true
+                    Task {
+                        try? await Task.sleep(for: .seconds(1))
+                        didRefresh = false
+                    }
                 }
                     .labelStyle(.iconOnly)
                     .buttonStyle(.plain)

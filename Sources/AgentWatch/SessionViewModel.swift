@@ -58,14 +58,14 @@ final class SessionViewModel: ObservableObject {
     }
 
     func select(_ session: AgentSession) {
-        if session.status == .completed {
+        if session.status == .completed || session.status == .failed {
             do {
                 try EventStore.shared.append(SessionEvent(
                     sessionID: session.id,
                     provider: session.provider,
                     status: .closed,
                     cwd: session.cwd,
-                    summary: "Acknowledged",
+                    summary: session.status == .failed ? "Failure acknowledged" : "Acknowledged",
                     terminal: session.terminal,
                     processID: session.processID
                 ))
